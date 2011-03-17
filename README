@@ -1,1 +1,3 @@
-cloud platform monitoring
+- Cloumon: cloud platform monitoring
+- License: GPL
+  Cloumon is under GPL license now because some of modules used in cloumon are under GPL even though originally I wished to make it under Apache license.
