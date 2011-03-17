@@ -1,0 +1,72 @@
+<?xml version="1.0"?>
+  <project name="cloumon" default="jar">
+  <property file="${user.home}/build.properties" />
+  <property file="${basedir}/build.properties" />
+
+  <property name="Name" value="cloumon"/>
+  <property name="name" value="cloumon"/>
+  <property name="version" value="0.9"/>
+  <property name="final.name" value="${name}-${version}"/>
+  <property name="year" value="2011"/>
+
+  <property name="src.dir" value="${basedir}/src/java"/>
+
+  <property name="build.dir" value="${basedir}/build"/>
+  <property name="build.classes" value="${build.dir}/classes"/>
+  <property name="build.src" value="${build.dir}/src"/>
+  <property name="build.encoding" value="ISO-8859-1"/>
+
+  <property name="deploy.dir" value="${basedir}/build"/>
+  <property name="dist.dir" value="${build.dir}/${final.name}"/>
+
+  <property name="javac.debug" value="on"/>
+  <property name="javac.optimize" value="on"/>
+  <property name="javac.deprecation" value="off"/>
+  <property name="javac.version" value="1.5"/>
+
+  <!-- the normal classpath -->
+  <path id="classpath">
+    <pathelement location="${build.classes}"/>
+    <fileset dir="${basedir}">
+      <include name="lib/**/*.jar" />
+      <include name="lib/*.jar" />
+    </fileset>
+  </path>
+
+  <!-- ====================================================== -->
+  <!-- Stuff needed by all targets                            -->
+  <!-- ====================================================== -->
+  <target name="init">
+    <mkdir dir="${build.dir}"/>
+    <mkdir dir="${build.classes}"/>
+    <mkdir dir="${build.src}"/>
+  </target>
+
+  <!-- ====================================================== -->
+  <!-- Compile the Java files                                 -->
+  <!-- ====================================================== -->
+  <target name="compile" depends="init">
+    <echo message="srcdir:${src.dir}, ${build.src}"/>
+    <javac encoding="${build.encoding}" srcdir="${src.dir};${build.src}"
+     includes="**/*.java" destdir="${build.classes}" debug="${javac.debug}"
+     optimize="${javac.optimize}" target="${javac.version}"
+     source="${javac.version}" deprecation="${javac.deprecation}">
+      <classpath refid="classpath"/>
+    </javac>
+  </target>
+
+  <!-- ================================================================== -->
+  <!-- Make jar                                                           -->
+  <!-- ================================================================== -->
+  <target name="jar" depends="compile">
+    <jar jarfile="${build.dir}/${final.name}.jar" basedir="${build.classes}">
+    </jar>
+  </target>
+
+  <!-- ================================================================== -->
+  <!-- Clean.  Delete the build files, and their directories              -->
+  <!-- ================================================================== -->
+  <target name="clean">
+    <delete dir="${build.dir}"/>
+  </target>
+</project>

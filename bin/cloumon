@@ -1,0 +1,101 @@
+#!/usr/bin/env bash
+# 
+# The ClouMon command script
+#
+# Environment Variables
+#
+#   JAVA_HOME        The java implementation to use.  Overrides JAVA_HOME.
+
+bin=`dirname "$0"`
+bin=`cd "$bin"; pwd`
+
+. "$bin"/cloumon-config.sh
+
+# if no args specified, show usage
+if [ $# = 0 ]; then
+  echo "Usage: cloumon COMMAND"
+  echo "where COMMAND is one of:"
+  echo "  manager       run the ManagerServer"
+  echo "  collector     run a Collector"
+  echo "  agent         run a Agent"
+  exit 1
+fi
+
+# get arguments
+COMMAND=$1
+shift
+
+if [ -f "${CLOUMON_CONF_DIR}/cloumon-env.sh" ]; then
+  . "${CLOUMON_CONF_DIR}/cloumon-env.sh"
+fi
+
+# some Java parameters
+if [ "$JAVA_HOME" != "" ]; then
+  #echo "run java in $JAVA_HOME"
+  JAVA_HOME=$JAVA_HOME
+fi
+  
+if [ "$JAVA_HOME" = "" ]; then
+  echo "Error: JAVA_HOME is not set."
+  exit 1
+fi
+
+JAVA=$JAVA_HOME/bin/java
+
+CLASSPATH=${CLOUMON_CONF_DIR}
+
+# so that filenames w/ spaces are handled correctly in loops below
+IFS=
+
+for f in $CLOUMON_HOME/cloumon-*.jar; do
+  CLASSPATH=${CLASSPATH}:$f;
+done
+
+# add libs to CLASSPATH
+for f in $CLOUMON_HOME/lib/*.jar; do
+  CLASSPATH=${CLASSPATH}:$f;
+done
+
+for f in $CLOUMON_HOME/lib/jetty-ext/*.jar; do
+  CLASSPATH=${CLASSPATH}:$f;
+done
+
+# add user-specified CLASSPATH last
+if [ "$CLOUMON_CLASSPATH" != "" ]; then
+  CLASSPATH=${CLASSPATH}:${CLOUMON_CLASSPATH}
+fi
+
+# default log directory & file
+if [ "$CLOUMON_LOG_DIR" = "" ]; then
+  CLOUMON_LOG_DIR="$CLOUMON_HOME/logs"
+fi
+if [ "$CLOUMON_LOGFILE" = "" ]; then
+  CLOUMON_LOGFILE='cloumon.log'
+fi
+
+# restore ordinary behaviour
+unset IFS
+
+if [ "$COMMAND" = "manager" ] ; then
+  CLASS='org.cloumon.manager.MonitorManagerServer'
+elif [ "$COMMAND" = "collector" ] ; then
+  CLASS='org.cloumon.collector.Collector'
+elif [ "$COMMAND" = "agent" ] ; then
+  CLASS='org.cloumon.agent.Agent'
+else
+  CLASS=$COMMAND
+fi
+
+CLOUMON_OPTS="$CLOUMON_OPTS -Dcloumon.log.dir=$CLOUMON_LOG_DIR"
+CLOUMON_OPTS="$CLOUMON_OPTS -Dcloumon.log.file=$CLOUMON_LOGFILE"
+CLOUMON_OPTS="$CLOUMON_OPTS -Dcloumon.home.dir=$CLOUMON_HOME"
+CLOUMON_OPTS="$CLOUMON_OPTS -Dcloumon.id.str=$CLOUMON_IDENT_STRING"
+CLOUMON_OPTS="$CLOUMON_OPTS -Dcloumon.root.logger=${CLOUMON_ROOT_LOGGER:-INFO,console}"
+#CLOUMON_OPTS="$CLOUMON_OPTS -Dcloumon.log.level=${CLOUMON_ROOT_LOGGER_LEVEL}"
+#CLOUMON_OPTS="$CLOUMON_OPTS -Dcloumon.log.appender=${CLOUMON_ROOT_LOGGER_APPENDER}"
+CLOUMON_OPTS="$CLOUMON_OPTS -Djava.library.path=${CLOUMON_HOME}/lib/native"
+
+# run it
+exec "$JAVA" $CLOUMON_OPTS -Djava.security.policy=$CLOUMON_HOME/conf/policy.all -classpath "$CLASSPATH" $CLASS "$@"
+
+

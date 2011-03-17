@@ -1,0 +1,48 @@
+<!DOCTYPE html
+PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>jsTree v.1.0 - full featured demo</title>
+  <script type="text/javascript" src="/frameworks/jstree/jquery.js"></script>
+  <script type="text/javascript" src="/frameworks/jstree/jquery.cookie.js"></script>
+  <script type="text/javascript" src="/frameworks/jstree/jquery.hotkeys.js"></script>
+  <script type="text/javascript" src="/frameworks/jstree/jquery.jstree.js"></script>
+
+  <style type="text/css">
+  html, body { margin:0; padding:0; }
+  body, td, th, pre, code, select, option, input, textarea { font-family:verdana,arial,sans-serif; font-size:10px; }
+  .demo, .demo input, .jstree-dnd-helper, #vakata-contextmenu { font-size:10px; font-family:Verdana; }
+  #container { width:780px; margin:10px auto; overflow:hidden; position:relative; }
+  #demo { width:auto; height:400px; overflow:auto; border:1px solid gray; }
+
+  #text { margin-top:1px; }
+
+  #alog { font-size:9px !important; margin:5px; border:1px solid silver; }
+  </style>
+
+<script type="text/javascript">
+  function maketree() {
+	  $("#demo1").jstree({ 
+		    "json_data" : {
+		      "ajax" : {
+		        "url" : "/frameworks/jstree/test_data.json",
+		        "data" : function (n) { 
+              if(n.attr) { alert(n.attr("id")); }
+		          return { id : n.attr ? n.attr("id") : 0 }; 
+		        }
+		      }
+		    },
+		    "plugins" : [ "themes", "json_data" ]
+		  });
+	}
+</script>  
+</head>
+<body>
+<div id="container">
+<div id="demo1" class="demo"></div>
+</div>
+<a href="javascript:maketree();">test</a>
+</body>
+</html>

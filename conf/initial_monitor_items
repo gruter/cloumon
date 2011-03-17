@@ -1,0 +1,27 @@
+#<adaptor_class_name> <group_name.item_name> <period> [adaptor params]
+SystemMonitorAdaptor cpu.load 60 cpu load
+SystemMonitorAdaptor cpu.user 60 cpu user
+SystemMonitorAdaptor cpu.sys 60 cpu sys
+SystemMonitorAdaptor cpu.idle 60 cpu idle
+SystemMonitorAdaptor cpu.wait 60 cpu wait
+
+SystemMonitorAdaptor memory.used 60 memory used
+SystemMonitorAdaptor memory.free 60 memory free
+SystemMonitorAdaptor memory.total 60 memory total
+
+SystemMonitorAdaptor swap.swapUsed 60 swap swapUsed
+SystemMonitorAdaptor swap.swapPageOut 60 swap swapPageOut
+SystemMonitorAdaptor swap.swapPageIn 60 swap swapPageIn
+SystemMonitorAdaptor swap.swapFree 60 swap swapFree
+SystemMonitorAdaptor swap.swapTotal 60 swap swapTotal
+
+SystemMonitorAdaptor disk.size 60 disk size
+SystemMonitorAdaptor disk.avail 60 disk avail
+SystemMonitorAdaptor disk.used 60 disk used
+SystemMonitorAdaptor disk.usePercent 60 disk usePercent
+
+#SystemMonitorAdaptor network.rxBytes 60 network rxBytes
+#SystemMonitorAdaptor network.txBytes 60 network txBytes
+
+ExecAdaptor process.java_count 60 ps aux | grep java | grep -v grep | wc -l
+

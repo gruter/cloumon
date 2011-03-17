@@ -1,0 +1,90 @@
+ include('../../view.js');
+
+uki.view.declare('monitor_app.view.ZkBox', uki.view.Box, function(Base) {
+  sampleData = [
+      { data: 'Sample value1', value:'1' },
+      { data: 'Sample value2', value:'2' },
+      { data: 'Sample value3', value:'3', children: [
+          { data: 'Sample sub value4',value:'4' },
+          { data: 'Sample sub value5', value:'5', children: [
+              { data: 'Sample sub value6', value:'6' },
+              { data: 'Sample sub value7', value:'7' },
+              { data: 'Sample sub value8', value:'8' }
+          ] },
+          { data: 'Sample sub value9', value:'9' }
+      ] },
+      { data: 'Sample value10', value:'10' },
+      { data: 'Sample value11', value:'11' }
+  ];
+  
+  this._createDom = function() {
+    Base._createDom.call(this);
+      
+    mainBox = uki.build(
+      { view: 'Box', rect: '0 0 800 960', anchors: 'left top right bottom', 
+        childViews: [
+          { view: 'Box', rect: '800 30', anchors: 'left top right', background: '#E1E1E1',
+            childViews: [
+              { view: 'Label', rect: '10 3 90 22', anchors: 'left top', text:' zk servers: '},
+              { view: 'TextField', rect: '90 3 300 22', anchors: 'left top', id: 'zkservers', value:'127.0.0.1:2181'},
+              { view: 'Button', rect: '410 3 80 22', anchors: 'left top', id: 'zkRefreshButton', text:'Query'}
+            ]
+          },
+          { view: 'ScrollPane', rect: '0 30 800 930', anchors: 'left top right bottom',
+            childViews: [
+              { view: 'uki.more.view.TreeList', rect: '800 930', anchors: 'left top right bottom', data: sampleData, id:'zkTree',
+                rowHeight: 22, style: {fontSize: '12px'}, multiselect: false
+              }
+            ]
+          }
+        ] 
+      })[0]; 
+    
+    this.appendChild(mainBox);
+    
+    uki('#zkRefreshButton').bind('click', function() {
+      if(uki('#zkservers').value() == "" ) {
+        alert("no zkservers");
+        return;
+      }
+      zkDataLoader.getZKNodes(uki('#zkservers').value(), "/", function(data) {
+        zkDataLoader.currentData = eval(data);
+        uki('#zkTree').data(zkDataLoader.currentData);
+      });
+    });
+    
+    uki('#zkTree').bind('open', function() {
+      var clickedValue = uki('#zkTree').treeData()[uki('#zkTree').lastOpenIndex()]['value'];
+           
+      zkDataLoader.getZKNodes(uki('#zkservers').value(), clickedValue, function(data) {
+        zkDataLoader.currentData
+        uki('#zkTree').data(eval(data));
+      });
+    });
+    
+    uki('#zkTree').bind('click', function() {
+      //alert(uki('#zkTree').treeData().length);
+      var selIndex = uki('#zkTree').selectedIndex();
+      var clickedValue = uki('#zkTree').treeData()[selIndex]['value'];
+      alert(selIndex + ',' + clickedValue);
+    });
+  };
+});
+
+/*
+uki.view.declare('monitor_app.view.ZkBoxTree', uki.more.view.TreeList, function(Base) { 
+  var lastOpenIndex;
+  
+  // access to the src attribute 
+  uki.delegateProp(this, 'lastOpenIndex', '_dom'); 
+  
+  this.open = function(index) {
+    Base.open.call(index);
+    
+    lastOpenIndex = index;
+  }
+}); 
+
+// access to the src attribute for collection 
+uki.Collection.addAttrs(['lastOpenIndex']); 
+*/

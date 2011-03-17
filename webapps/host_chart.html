@@ -1,0 +1,124 @@
+<html>
+<head>
+  <style type="text/css">
+    body {
+      font-family: Verdana, Arial, Helvetica, sans-serif;
+      font-size: 11px;
+    }  
+  </style>
+  <script type="text/javascript" src="/lib/smoothie/smoothie.js"></script>
+  <script type="text/javascript" src="/lib/jquery/jquery.js" ></script> 
+  <script type="text/javascript">
+    var cpuDatas = [ new TimeSeries(), new TimeSeries(), new TimeSeries(), new TimeSeries(), new TimeSeries() ];
+    var memoryDatas = [ new TimeSeries(), new TimeSeries(), new TimeSeries() ];
+    var networkDatas = [ new TimeSeries(), new TimeSeries() ];
+    var processDatas = [ new TimeSeries() ];
+    var interval = 5000;
+    
+    var graphInterval;
+    var hostName;
+    
+    function setHostName(host) {
+      hostName = host;
+      document.getElementById("stopMonitoring").checked = true
+      controlGraph();
+    }
+        
+    function startGraph() {
+       graphInterval = setInterval(function() {
+        $.ajax({
+          type: "GET",
+          url: "/monitor?action=HostRealtimeMetrics&host=" + hostName,
+          success: function(data) {
+            if(data == "error") {
+              alert("error");
+              stopGraph();
+              return;
+            }
+            var metricsData = eval(data);
+          
+            var cpuMetrics = metricsData[0]['cpu'];
+            for(var i = 0; i < cpuMetrics.length; i++) {
+             cpuDatas[i].append(new Date().getTime(), parseFloat(cpuMetrics[i]));
+            }
+          
+            var memoryMetrics = metricsData[1]['memory'];
+            for(var i = 0; i < memoryMetrics.length; i++) {
+              memoryDatas[i].append(new Date().getTime(), parseFloat(memoryMetrics[i]));
+            } 
+          
+            var networkMetrics = metricsData[2]['network'];
+            for(var i = 0; i < networkMetrics.length; i++) {
+              networkDatas[i].append(new Date().getTime(), parseFloat(networkMetrics[i]));
+            }           
+            var processMetrics = metricsData[3]['process'];
+            for(var i = 0; i < processMetrics.length; i++) {
+              processDatas[i].append(new Date().getTime(), parseFloat(processMetrics[i]));
+            }           
+          }
+        });           
+      }, interval);
+    }
+          
+    function controlGraph() {
+      interval = parseInt(document.getElementById("interval").value) * 1000;
+      if(document.getElementById("stopMonitoring").checked) {
+        stopGraph();
+      } else {
+        startGraph();
+      }
+    }
+    
+    function stopGraph() {
+      clearInterval(graphInterval);
+    }
+    
+    function createTimeline() {
+      var cpuChart = new SmoothieChart();
+      cpuChart.addTimeSeries(cpuDatas[0], { strokeStyle: 'rgb(0, 255, 0)', fillStyle: 'rgba(0, 255, 0, 0.4)', lineWidth: 3 });
+      cpuChart.addTimeSeries(cpuDatas[1], { strokeStyle: 'rgb(255, 0, 255)', fillStyle: 'rgba(255, 0, 255, 0.3)', lineWidth: 3 });
+      cpuChart.addTimeSeries(cpuDatas[2], { strokeStyle: 'rgb(0, 255, 255)', fillStyle: 'rgba(0, 255, 255, 0.3)', lineWidth: 3 });
+      cpuChart.addTimeSeries(cpuDatas[3], { strokeStyle: 'rgb(255, 255, 0)', fillStyle: 'rgba(255, 255, 0, 0.3)', lineWidth: 3 });
+      cpuChart.addTimeSeries(cpuDatas[4], { strokeStyle: 'rgb(255, 0, 0)', fillStyle: 'rgba(255, 0, 0, 0.3)', lineWidth: 3 });
+      cpuChart.streamTo(document.getElementById("cpuChart"), interval);
+
+      var memoryChart = new SmoothieChart();
+      memoryChart.addTimeSeries(memoryDatas[0], { strokeStyle: 'rgb(0, 255, 0)', fillStyle: 'rgba(0, 255, 0, 0.4)', lineWidth: 3 });
+      memoryChart.addTimeSeries(memoryDatas[1], { strokeStyle: 'rgb(255, 0, 255)', fillStyle: 'rgba(255, 0, 255, 0.3)', lineWidth: 3 });
+      memoryChart.addTimeSeries(memoryDatas[2], { strokeStyle: 'rgb(0, 255, 255)', fillStyle: 'rgba(0, 255, 255, 0.3)', lineWidth: 3 });
+      memoryChart.streamTo(document.getElementById("memoryChart"), interval);
+
+      var networkChart = new SmoothieChart();
+      networkChart.addTimeSeries(networkDatas[0], { strokeStyle: 'rgb(0, 255, 0)', fillStyle: 'rgba(0, 255, 0, 0.4)', lineWidth: 3 });
+      networkChart.addTimeSeries(networkDatas[1], { strokeStyle: 'rgb(255, 0, 255)', fillStyle: 'rgba(255, 0, 255, 0.3)', lineWidth: 3 });
+      networkChart.streamTo(document.getElementById("networkChart"), interval);
+
+      var processChart = new SmoothieChart();
+      processChart.addTimeSeries(processDatas[0], { strokeStyle: 'rgb(0, 255, 0)', fillStyle: 'rgba(0, 255, 0, 0.4)', lineWidth: 3 });
+      processChart.streamTo(document.getElementById("processChart"), interval);
+    }
+  </script>
+</head>
+<body onload="createTimeline()">
+  <input type="checkbox" id="stopMonitoring" checked onclick="javascript:controlGraph()"/> stop
+  &nbsp;&nbsp;<input type="text" size="2" id="interval" value="5"/> sec
+  <div>
+    <div style="position: absolute; left:10px; top:25px; width:400px; height:100px">
+      cpu<br/>
+      <canvas id="cpuChart" width="400" height="85"></canvas>
+    </div>
+    <div style="position: absolute; left:420px; top:25px; width:400px; height:100px">
+      memory<br/>
+      <canvas id="memoryChart" width="400" height="85"></canvas>
+    </div>
+    <div style="position: absolute; left:10px; top:130px; width:400px; height:100px">
+      network<br/>
+      <canvas id="networkChart" width="400" height="85"></canvas>
+    </div>
+    <div style="position: absolute; left:420px; top:130px; width:400px; height:100px">
+      # process<br/>
+      <canvas id="processChart" width="400" height="85"></canvas>
+    </div>
+  </div>
+ </body>
+</html>

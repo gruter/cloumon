@@ -1,0 +1,183 @@
+<?xml version="1.0"?>
+<configuration>
+  <property>
+    <name>zk.servers</name>
+    <value>127.0.0.1:2181</value>
+    <description></description>
+  </property>
+  
+  <property>
+    <name>zk.sesion.timeout</name>
+    <value>30000</value>
+    <description>ms</description>
+  </property> 
+  
+  <property>
+    <name>zk.service.root</name>
+    <value>/cloumon</value>
+    <description></description>
+  </property>
+  
+  <property>
+    <name>zk.service.cloumon.agent.userId</name>
+    <value>agent</value>
+    <description></description>
+  </property>
+
+  <property>
+    <name>zk.service.cloumon.agent.password</name>
+    <value>agent</value>
+    <description></description>
+  </property>
+    
+  <property>
+    <name>zk.service.cloumon.collector.userId</name>
+    <value>collector</value>
+    <description></description>
+  </property>
+  
+  <property>
+    <name>zk.service.cloumon.collector.password</name>
+    <value>collector</value>
+    <description>comma separator</description>
+  </property>
+
+  <property>
+    <name>alarm.sender</name>
+    <value>org.cloumon.manager.alarm.MailAlarmSender</value>
+    <description>comma deliminator</description>
+  </property>
+  
+  <property>
+    <name>alarm.mail.smtp.host</name>
+    <value>smtp.gmail.com</value>
+    <description></description>
+  </property>
+  
+  <property>
+    <name>alarm.mail.smtp.port</name>
+    <value>465</value>
+    <description></description>
+  </property>  
+  
+  <property>
+    <name>alarm.mail.smtp.userId</name>
+    <value>test</value>
+    <description></description>
+  </property>    
+  
+  <property>
+    <name>alarm.mail.smtp.userPasswd</name>
+    <value>test</value>
+    <description></description>
+  </property>   
+
+  <property>
+    <name>alarm.mail.from</name>
+    <value>cloumon@cloumon.org</value>
+    <description></description>
+  </property>   
+  
+  <property>
+    <name>alarm.mail.to</name>
+    <value>manager@cloumon.org</value>
+    <description></description>
+  </property>   
+    
+  <property>
+    <name>cloumon.db.driver</name>
+    <value>com.mysql.jdbc.Driver</value>
+    <description></description>
+  </property>
+
+  <property>
+    <name>cloumon.db.uri</name>
+    <value>jdbc:mysql://localhost:3306/cloumon?user=cloumon&amp;password=cloumon</value>
+    <description></description>
+  </property>
+
+  <property>
+    <name>cloumon.alarm.mail</name>
+    <value>test@gmail.com</value>
+    <description></description>
+  </property>
+
+  <property>
+    <name>hadoop.jvm.metrics.path</name>
+    <value></value>
+    <description></description>
+  </property>
+    
+  <property>
+    <name>hdfs.metrics.path</name>
+    <value></value>
+    <description></description>
+  </property>
+
+  <property>
+    <name>mapred.metrics.path</name>
+    <value></value>
+    <description></description>
+  </property>
+      
+  <property>
+    <name>collector.port</name>
+    <value>9124</value>
+    <description></description>
+  </property>
+
+  <property>
+    <name>cloumon.manager.port</name>
+    <value>9123</value>
+    <description></description>
+  </property>
+      
+  <property>
+    <name>collector.writer</name>
+    <value>org.cloumon.collector.writer.PipelineWriter</value>
+    <description></description>
+  </property>
+
+  <property>
+    <name>collector.writer.PipelineWriter.writers</name>
+    <!--<value>org.cloumon.collector.writer.DBWriter,org.cloumon.collector.writer.HadoopWriter</value>-->
+    <value>org.cloumon.collector.writer.DBWriter,org.cloumon.collector.writer.LocalFileWriter</value>
+    <description></description>
+  </property>
+
+  <property>
+    <name>collector.writer.HadoopWriter.hdfs.filesystem</name>
+    <value>hdfs://localhost:9000/</value>
+    <description>HDFS to dump to</description>
+  </property>
+
+  <property>
+    <name>collector.writer.HadoopWriter.archivePath</name>
+    <value>/user/monitor/datas</value>
+    <description></description>
+  </property>
+
+  <property>
+    <name>collector.writer.LocalFileWriter.localOutputDir</name>
+    <value>/Users/babokim/temp/monitor</value>
+    <description></description>
+  </property>
+
+  <property>
+    <name>cloumon.agent.nodeType</name>
+    <value>host</value>
+    <description>host or vm</description>
+  </property>
+
+  <property>
+    <name>collector.port</name>
+    <value>7125</value>
+    <description></description>
+  </property>
+  
+  <property>
+    <name>cloumon.agent.httpPort</name>
+    <value>8125</value>
+    <description>host or vm</description>
+  </property>
+</configuration>  

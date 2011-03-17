@@ -1,0 +1,134 @@
+<html>
+<head>
+  <style type="text/css">
+    body {
+      font-family: Verdana, Arial, Helvetica, sans-serif;
+      font-size: 11px;
+    }  
+  </style>
+  <link rel="stylesheet" type="text/css" href="/lib/flot/jquery.jqplot.min.css" /> 
+  <script type="text/javascript" src="/lib/flot/jquery.js" ></script> 
+  <script type="text/javascript" src="/lib/flot/jquery.jqplot.min.js"></script>
+  <script type="text/javascript" src="/lib/flot/jqplot.dateAxisRenderer.min.js"></script>
+  <script type="text/javascript"> 
+    var currentGroupName;
+    var currentHostName;
+    var currentStartTime;
+    var currentEndTime;
+    
+    function showGraph(groupName, hostName, startTime, endTime, jsonData) {
+      if(groupName != "") {
+         currentGroupName = groupName;
+    	   currentHostName = hostName;
+    	   currentStartTime = startTime;
+    	   currentEndTime = endTime;
+    	}
+    	
+      var graphDataKeys = new Array();
+      
+      for (var jsonDataName in jsonData[0] ) {
+    	  graphDataKeys.push(jsonDataName);
+      }
+      var series = new Array();
+      var graphDatas = new Array();
+
+      var ymax = 0;
+      var baseNum = 0;
+      if(jsonData.length > 0) {
+        var currentData = Number(jsonData[0][graphDataKeys[1]].replace(/[^0-9\.]+/g,""));
+        if(currentData >= 1024 * 1024 * 1024) {
+            baseNum = 1024 * 1024;
+        } else if(currentData >= 1024 * 1024) {
+            baseNum = 1024;
+        }
+      }
+      for(var i = 1; i < graphDataKeys.length; i++) {
+    	  graphDatas[i-1] = new Array();
+    	  series[i-1] = {label:graphDataKeys[i], showLabel:true, showMarker:false, lineWidth:1};
+    	   
+    	  var index = 0;
+    	  for(var j = (jsonData.length - 1); j >= 0; j--) {
+            var localTime = new Date(jsonData[j]['logTime']);
+            var logTime = new Date(localTime).getTime();
+            var currentData = Number(jsonData[j][graphDataKeys[i]].replace(/[^0-9\.]+/g,""));
+            if(baseNum > 0) {
+            	 currentData = currentData/baseNum;
+               graphDatas[i-1][index] = [logTime, currentData];
+            } else {
+                graphDatas[i-1][index] = [logTime, currentData];
+            }    
+        	  if(currentData > ymax) {
+            	  ymax = currentData;
+        	  } 
+            index++;
+        }
+      }
+      if(ymax > 4 && ymax < 10) {
+    	  ymax = ymax + 1;
+      } else if(ymax >= 10 && ymax < 100) {
+        ymax = ymax + 10;
+      } else if(ymax >= 100 && ymax < 1000) {
+        ymax = ymax + 50;
+      } else if(ymax >= 1000 && ymax < 10000) {
+        ymax = ymax + 100;
+      } else if(ymax >= 1000 && ymax < 100000) {
+    	  ymax = ymax + 1000;
+      } 
+
+      $('#chart').empty(); 
+      
+      $.jqplot.config.enablePlugins = true;
+      $.jqplot('chart', graphDatas,
+          { 
+    	      legend:{show:true, location:'nw'},
+            series: series,
+            axes: { 
+    	              xaxis: { renderer:$.jqplot.DateAxisRenderer, tickOptions:{formatString:'%H:%M'} },  
+    	              yaxis: { min:0, max:ymax } 
+    	            }
+          }
+      );
+      if(groupName != "") {
+        $('#chartItem').empty(); 
+      
+        var chartItem = $('#chartItem');
+        chartItem.append("&nbsp;&nbsp;&nbsp;&nbsp;");
+        for(var i = 1; i < graphDataKeys.length; i++) {
+          var checkId = "graphItem_" + i;
+    	    chartItem.append("<input type=\"checkbox\" value=\"" + graphDataKeys[i] + "\" onclick=\"reloadGraph();\"/>" + graphDataKeys[i] + "&nbsp;&nbsp;");
+        }
+      }
+    }
+
+    function reloadGraph() {
+      var selectedItems = "";
+      for (var i = 0; i < $("input:checkbox").length; i++) {
+        if ($("input:checkbox")[i].checked == true) {
+            selectedItems = selectedItems + $("input:checkbox")[i].value + ",";
+        }
+      }
+    	var param = "&groupName=" + currentGroupName; 
+    	param += "&hostName=" + currentHostName;
+      param += "&startTime=" + currentStartTime;
+      param += "&endTime=" + currentEndTime;
+      param += "&items=" + selectedItems;  
+          
+      $.ajax({
+          type: "GET",
+          url: "/monitor?action=GetHostHistoryMetrics" + param,
+          success: function(data) {
+            var jsonData = eval(data); 
+            if(jsonData.length == 0) {
+              return;
+            }
+            showGraph('', '', '', '', jsonData);        
+          }
+      });
+    }
+  </script>     
+</head>
+<body>
+  <div id="chart" style="width:750px;height:180px;"></div> 
+  <div id="chartItem" style="width:750px;height:20px;"></div>
+</body>
+</html>  
