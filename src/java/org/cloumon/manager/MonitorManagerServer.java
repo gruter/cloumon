@@ -6,12 +6,14 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.thrift.TException;
 import org.apache.thrift.TProcessor;
 import org.apache.zookeeper.ZooKeeper;
+import org.apache.zookeeper.AsyncCallback.VoidCallback;
 import org.cloumon.manager.alarm.AgentFailMonitor;
 import org.cloumon.manager.alarm.AlarmManager;
 import org.cloumon.manager.servlet.MonitorControllerServlet;
@@ -54,14 +56,22 @@ public class MonitorManagerServer extends ThriftApplicationServer {
 
     monitorService = getApplicationContext().getBean("monitorService", MonitorServiceImpl.class);
     hadoopMonitorItemLoader = new HadoopMonitorItemLoader(conf, this);
-    hadoopMonitorItemLoader.loadHadoopItems();
+    boolean hadoopSuccess = false;
+    try {
+      hadoopMonitorItemLoader.loadHadoopItems();
+      hadoopSuccess = true;
+    } catch (Exception e) {
+      LOG.error(e.getMessage(), e);
+    }
     if(clean) {
       monitorService.clearAllDatas();
       loadInitialMonitorItems();
       hadoopMonitorItemLoader.saveMonitorItems();
       System.exit(0);
     }
-    hadoopMonitorItemLoader.checkDataNode();
+    if(hadoopSuccess) {
+      hadoopMonitorItemLoader.checkDataNode();
+    }
     monitorService.init(this);
     
     webServer = new CommonHttpServer("webapps", "0.0.0.0", HTTP_PORT, false);
@@ -206,10 +216,21 @@ public class MonitorManagerServer extends ThriftApplicationServer {
         if("Y".equals(answer)) {
           clean = true;
           LOG.info("Started clear command.");
-          ZooKeeper zk = new ZooKeeper(conf.get("zk.servers"), 10 * 1000, new DefaultWatcher());
-          Thread.sleep(1 * 1000);
+          CountDownLatch latch = new CountDownLatch(1);
+          ZooKeeper zk = new ZooKeeper(conf.get("zk.servers"), 10 * 1000, new DefaultWatcher(latch));
+          latch.await();
           ZKUtil.delete(zk, conf.get("zk.service.root", "/cloumon"), true);
+          
+          latch = new CountDownLatch(1);
+          zk.sync(zkPath, new VoidCallback() {
+            @Override
+            public void processResult(int rc, String path, Object ctx) {
+              ((CountDownLatch)ctx).countDown();
+            }
+          }, latch);
+          latch.await();
           LOG.info("cleared all zookeeper node.");
+          
           zk.close();        
         } else {
           LOG.info("Stoped clear command and starting server");
