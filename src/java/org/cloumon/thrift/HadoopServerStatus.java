@@ -20,19 +20,22 @@ import java.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class DataNodeStatus implements org.apache.thrift.TBase<DataNodeStatus, DataNodeStatus._Fields>, java.io.Serializable, Cloneable {
-  private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("DataNodeStatus");
+public class HadoopServerStatus implements org.apache.thrift.TBase<HadoopServerStatus, HadoopServerStatus._Fields>, java.io.Serializable, Cloneable {
+  private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("HadoopServerStatus");
 
   private static final org.apache.thrift.protocol.TField HOST_NAME_FIELD_DESC = new org.apache.thrift.protocol.TField("hostName", org.apache.thrift.protocol.TType.STRING, (short)1);
-  private static final org.apache.thrift.protocol.TField LIVE_FIELD_DESC = new org.apache.thrift.protocol.TField("live", org.apache.thrift.protocol.TType.BOOL, (short)2);
+  private static final org.apache.thrift.protocol.TField NODE_TYPE_FIELD_DESC = new org.apache.thrift.protocol.TField("nodeType", org.apache.thrift.protocol.TType.STRING, (short)2);
+  private static final org.apache.thrift.protocol.TField LIVE_FIELD_DESC = new org.apache.thrift.protocol.TField("live", org.apache.thrift.protocol.TType.BOOL, (short)3);
 
   public String hostName;
+  public String nodeType;
   public boolean live;
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
     HOST_NAME((short)1, "hostName"),
-    LIVE((short)2, "live");
+    NODE_TYPE((short)2, "nodeType"),
+    LIVE((short)3, "live");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -49,7 +52,9 @@ public class DataNodeStatus implements org.apache.thrift.TBase<DataNodeStatus, D
       switch(fieldId) {
         case 1: // HOST_NAME
           return HOST_NAME;
-        case 2: // LIVE
+        case 2: // NODE_TYPE
+          return NODE_TYPE;
+        case 3: // LIVE
           return LIVE;
         default:
           return null;
@@ -99,21 +104,25 @@ public class DataNodeStatus implements org.apache.thrift.TBase<DataNodeStatus, D
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
     tmpMap.put(_Fields.HOST_NAME, new org.apache.thrift.meta_data.FieldMetaData("hostName", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
+    tmpMap.put(_Fields.NODE_TYPE, new org.apache.thrift.meta_data.FieldMetaData("nodeType", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
     tmpMap.put(_Fields.LIVE, new org.apache.thrift.meta_data.FieldMetaData("live", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
-    org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(DataNodeStatus.class, metaDataMap);
+    org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(HadoopServerStatus.class, metaDataMap);
   }
 
-  public DataNodeStatus() {
+  public HadoopServerStatus() {
   }
 
-  public DataNodeStatus(
+  public HadoopServerStatus(
     String hostName,
+    String nodeType,
     boolean live)
   {
     this();
     this.hostName = hostName;
+    this.nodeType = nodeType;
     this.live = live;
     setLiveIsSet(true);
   }
@@ -121,22 +130,26 @@ public class DataNodeStatus implements org.apache.thrift.TBase<DataNodeStatus, D
   /**
    * Performs a deep copy on <i>other</i>.
    */
-  public DataNodeStatus(DataNodeStatus other) {
+  public HadoopServerStatus(HadoopServerStatus other) {
     __isset_bit_vector.clear();
     __isset_bit_vector.or(other.__isset_bit_vector);
     if (other.isSetHostName()) {
       this.hostName = other.hostName;
     }
+    if (other.isSetNodeType()) {
+      this.nodeType = other.nodeType;
+    }
     this.live = other.live;
   }
 
-  public DataNodeStatus deepCopy() {
-    return new DataNodeStatus(this);
+  public HadoopServerStatus deepCopy() {
+    return new HadoopServerStatus(this);
   }
 
   @Override
   public void clear() {
     this.hostName = null;
+    this.nodeType = null;
     setLiveIsSet(false);
     this.live = false;
   }
@@ -145,7 +158,7 @@ public class DataNodeStatus implements org.apache.thrift.TBase<DataNodeStatus, D
     return this.hostName;
   }
 
-  public DataNodeStatus setHostName(String hostName) {
+  public HadoopServerStatus setHostName(String hostName) {
     this.hostName = hostName;
     return this;
   }
@@ -165,11 +178,35 @@ public class DataNodeStatus implements org.apache.thrift.TBase<DataNodeStatus, D
     }
   }
 
+  public String getNodeType() {
+    return this.nodeType;
+  }
+
+  public HadoopServerStatus setNodeType(String nodeType) {
+    this.nodeType = nodeType;
+    return this;
+  }
+
+  public void unsetNodeType() {
+    this.nodeType = null;
+  }
+
+  /** Returns true if field nodeType is set (has been assigned a value) and false otherwise */
+  public boolean isSetNodeType() {
+    return this.nodeType != null;
+  }
+
+  public void setNodeTypeIsSet(boolean value) {
+    if (!value) {
+      this.nodeType = null;
+    }
+  }
+
   public boolean isLive() {
     return this.live;
   }
 
-  public DataNodeStatus setLive(boolean live) {
+  public HadoopServerStatus setLive(boolean live) {
     this.live = live;
     setLiveIsSet(true);
     return this;
@@ -198,6 +235,14 @@ public class DataNodeStatus implements org.apache.thrift.TBase<DataNodeStatus, D
       }
       break;
 
+    case NODE_TYPE:
+      if (value == null) {
+        unsetNodeType();
+      } else {
+        setNodeType((String)value);
+      }
+      break;
+
     case LIVE:
       if (value == null) {
         unsetLive();
@@ -213,6 +258,9 @@ public class DataNodeStatus implements org.apache.thrift.TBase<DataNodeStatus, D
     switch (field) {
     case HOST_NAME:
       return getHostName();
+
+    case NODE_TYPE:
+      return getNodeType();
 
     case LIVE:
       return Boolean.valueOf(isLive());
@@ -230,6 +278,8 @@ public class DataNodeStatus implements org.apache.thrift.TBase<DataNodeStatus, D
     switch (field) {
     case HOST_NAME:
       return isSetHostName();
+    case NODE_TYPE:
+      return isSetNodeType();
     case LIVE:
       return isSetLive();
     }
@@ -240,12 +290,12 @@ public class DataNodeStatus implements org.apache.thrift.TBase<DataNodeStatus, D
   public boolean equals(Object that) {
     if (that == null)
       return false;
-    if (that instanceof DataNodeStatus)
-      return this.equals((DataNodeStatus)that);
+    if (that instanceof HadoopServerStatus)
+      return this.equals((HadoopServerStatus)that);
     return false;
   }
 
-  public boolean equals(DataNodeStatus that) {
+  public boolean equals(HadoopServerStatus that) {
     if (that == null)
       return false;
 
@@ -255,6 +305,15 @@ public class DataNodeStatus implements org.apache.thrift.TBase<DataNodeStatus, D
       if (!(this_present_hostName && that_present_hostName))
         return false;
       if (!this.hostName.equals(that.hostName))
+        return false;
+    }
+
+    boolean this_present_nodeType = true && this.isSetNodeType();
+    boolean that_present_nodeType = true && that.isSetNodeType();
+    if (this_present_nodeType || that_present_nodeType) {
+      if (!(this_present_nodeType && that_present_nodeType))
+        return false;
+      if (!this.nodeType.equals(that.nodeType))
         return false;
     }
 
@@ -275,13 +334,13 @@ public class DataNodeStatus implements org.apache.thrift.TBase<DataNodeStatus, D
     return 0;
   }
 
-  public int compareTo(DataNodeStatus other) {
+  public int compareTo(HadoopServerStatus other) {
     if (!getClass().equals(other.getClass())) {
       return getClass().getName().compareTo(other.getClass().getName());
     }
 
     int lastComparison = 0;
-    DataNodeStatus typedOther = (DataNodeStatus)other;
+    HadoopServerStatus typedOther = (HadoopServerStatus)other;
 
     lastComparison = Boolean.valueOf(isSetHostName()).compareTo(typedOther.isSetHostName());
     if (lastComparison != 0) {
@@ -289,6 +348,16 @@ public class DataNodeStatus implements org.apache.thrift.TBase<DataNodeStatus, D
     }
     if (isSetHostName()) {
       lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.hostName, typedOther.hostName);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = Boolean.valueOf(isSetNodeType()).compareTo(typedOther.isSetNodeType());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetNodeType()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.nodeType, typedOther.nodeType);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -327,7 +396,14 @@ public class DataNodeStatus implements org.apache.thrift.TBase<DataNodeStatus, D
             org.apache.thrift.protocol.TProtocolUtil.skip(iprot, field.type);
           }
           break;
-        case 2: // LIVE
+        case 2: // NODE_TYPE
+          if (field.type == org.apache.thrift.protocol.TType.STRING) {
+            this.nodeType = iprot.readString();
+          } else { 
+            org.apache.thrift.protocol.TProtocolUtil.skip(iprot, field.type);
+          }
+          break;
+        case 3: // LIVE
           if (field.type == org.apache.thrift.protocol.TType.BOOL) {
             this.live = iprot.readBool();
             setLiveIsSet(true);
@@ -355,6 +431,11 @@ public class DataNodeStatus implements org.apache.thrift.TBase<DataNodeStatus, D
       oprot.writeString(this.hostName);
       oprot.writeFieldEnd();
     }
+    if (this.nodeType != null) {
+      oprot.writeFieldBegin(NODE_TYPE_FIELD_DESC);
+      oprot.writeString(this.nodeType);
+      oprot.writeFieldEnd();
+    }
     oprot.writeFieldBegin(LIVE_FIELD_DESC);
     oprot.writeBool(this.live);
     oprot.writeFieldEnd();
@@ -364,7 +445,7 @@ public class DataNodeStatus implements org.apache.thrift.TBase<DataNodeStatus, D
 
   @Override
   public String toString() {
-    StringBuilder sb = new StringBuilder("DataNodeStatus(");
+    StringBuilder sb = new StringBuilder("HadoopServerStatus(");
     boolean first = true;
 
     sb.append("hostName:");
@@ -372,6 +453,14 @@ public class DataNodeStatus implements org.apache.thrift.TBase<DataNodeStatus, D
       sb.append("null");
     } else {
       sb.append(this.hostName);
+    }
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("nodeType:");
+    if (this.nodeType == null) {
+      sb.append("null");
+    } else {
+      sb.append(this.nodeType);
     }
     first = false;
     if (!first) sb.append(", ");

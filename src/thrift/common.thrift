@@ -142,7 +142,8 @@ struct MetricRecord {
   9: string recordId;
 }
 
-struct DataNodeStatus {
+struct HadoopServerStatus {
   1: string hostName;
-  2: bool live;
+  2: string nodeType;
+  3: bool live;
 }

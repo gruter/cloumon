@@ -43,5 +43,5 @@ service MonitorService {
   void addHostToService(1: string serviceGroupName, 2: list<string> hostNames);
   
   //Hadoop
-  list<common.DataNodeStatus> getDataNodeList();
+  list<common.HadoopServerStatus> getHadoopServerList(1:string type);
 }

@@ -12,8 +12,12 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.thrift.TException;
 import org.apache.thrift.TProcessor;
+import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.WatchedEvent;
+import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.AsyncCallback.VoidCallback;
+import org.cloumon.common.zk.ZKPath;
 import org.cloumon.manager.alarm.AgentFailMonitor;
 import org.cloumon.manager.alarm.AlarmManager;
 import org.cloumon.manager.servlet.MonitorControllerServlet;
@@ -57,17 +61,25 @@ public class MonitorManagerServer extends ThriftApplicationServer {
     monitorService = getApplicationContext().getBean("monitorService", MonitorServiceImpl.class);
     hadoopMonitorItemLoader = new HadoopMonitorItemLoader(conf, this);
     boolean hadoopSuccess = false;
-    try {
-      hadoopMonitorItemLoader.loadHadoopItems();
-      hadoopSuccess = true;
-    } catch (Exception e) {
-      LOG.error(e.getMessage(), e);
-    }
+
     if(clean) {
       monitorService.clearAllDatas();
+      try {
+        hadoopMonitorItemLoader.loadHadoopItems();
+        hadoopSuccess = true;
+      } catch (Exception e) {
+        LOG.error(e.getMessage(), e);
+      }      
       loadInitialMonitorItems();
       hadoopMonitorItemLoader.saveMonitorItems();
       System.exit(0);
+    } else {
+      try {
+        hadoopMonitorItemLoader.loadHadoopItems();
+        hadoopSuccess = true;
+      } catch (Exception e) {
+        LOG.error(e.getMessage(), e);
+      }      
     }
     if(hadoopSuccess) {
       hadoopMonitorItemLoader.checkDataNode();
@@ -237,7 +249,6 @@ public class MonitorManagerServer extends ThriftApplicationServer {
           System.exit(0);
         } 
       }
-
       StringUtils.startupShutdownMessage(MonitorManagerServer.class, args, LOG);
       MonitorManagerServer server = new MonitorManagerServer(conf, clean);
       server.startServer();
@@ -259,4 +270,31 @@ public class MonitorManagerServer extends ThriftApplicationServer {
     LOG.error("ZK Session Expired");
     super.zkSessionExpired();
   }
+
+  @Override
+  protected void zkConnected() throws IOException {
+    super.zkConnected();
+//    try {
+//      String membershipPath = ZKUtil.getServiceLiveServerPath(conf, getServiceName());
+//      LOG.info(">>>>>>>>>Path>" + membershipPath);
+//      zk.getChildren(membershipPath, new TestWatcher());
+//    } catch (KeeperException.NoNodeException e) {
+//    } catch (Exception e) {
+//      LOG.error(e.getMessage(), e);
+//    }
+  }
+  
+//  class TestWatcher implements Watcher {
+//    @Override
+//    public void process(WatchedEvent event) {
+//      if(event.getType() == Event.EventType.NodeChildrenChanged) {
+//        try {
+//          LOG.fatal(">>>>>>>>>>>>>>>>>Node Changed:" + event.getPath());
+//          zk.getChildren(ZKUtil.getServiceLiveServerPath(conf, getServiceName()), new TestWatcher());
+//        } catch (Exception e) {
+//          LOG.error(e.getMessage(), e);
+//        }
+//      }
+//    }
+//  }
 }

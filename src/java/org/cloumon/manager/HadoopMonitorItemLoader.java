@@ -1,5 +1,8 @@
 package org.cloumon.manager;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -59,12 +62,14 @@ public class HadoopMonitorItemLoader {
   String jvmLogPath;
   MonitorManagerServer monitorManagerServer;
 
-  List<DatanodeInfo> liveDataNodes = new ArrayList<DatanodeInfo>();
-  List<DatanodeInfo> deadDataNodes = new ArrayList<DatanodeInfo>();
+  List<String> liveDataNodes = new ArrayList<String>();
+  List<String> deadDataNodes = new ArrayList<String>();
   
   CheckDataNodeThread checkDataNodeThread = new CheckDataNodeThread();
   
   String nameNodeHost;
+  
+  boolean dfsAdminUser = true;
   
   public HadoopMonitorItemLoader(GruterConf conf, MonitorManagerServer monitorManagerServer) throws IOException {
     this.conf = conf;
@@ -89,11 +94,11 @@ public class HadoopMonitorItemLoader {
     return Integer.parseInt(hostPort.substring(index+1));    
   }
   
-  public List<DatanodeInfo> getLiveDataNodes() {
+  public List<String> getLiveDataNodes() {
     return liveDataNodes;
   }
   
-  public List<DatanodeInfo> getDeadDataNodes() {
+  public List<String> getDeadDataNodes() {
     return deadDataNodes;
   }
   
@@ -124,7 +129,6 @@ public class HadoopMonitorItemLoader {
       allParams += " " + params;
     }
     monitorItem.setParams(allParams);
-    
     return monitorItem;
   }
   
@@ -138,8 +142,7 @@ public class HadoopMonitorItemLoader {
     hadoopConf.set("fs.default.name", fsName);
     FileSystem fs = FileSystem.get(hadoopConf);
     
-    nameNodeHost = fs.getUri().getHost();
-
+    nameNodeHost = ipToHostname(fs.getUri().getHost());
     try {
       List<MonitorItem> savedNameNodeMonitorItems = monitorManagerServer.monitorService.findMonitorItemByGroup("namenode");
       if(savedNameNodeMonitorItems != null && !savedNameNodeMonitorItems.isEmpty()) {
@@ -242,11 +245,39 @@ public class HadoopMonitorItemLoader {
       
       FileSystem fs = FileSystem.get(hadoopConf);
       
-      nameNodeHost = fs.getUri().getHost();
+      nameNodeHost = ipToHostname(fs.getUri().getHost());
       DistributedFileSystem dfs = (DistributedFileSystem) fs;
-      DatanodeInfo[] liveNodes = dfs.getClient().datanodeReport(DatanodeReportType.LIVE);
-      DatanodeInfo[] deadNodes = dfs.getClient().datanodeReport(DatanodeReportType.DEAD);
-  
+      String[] liveNodes = null;
+      String[] deadNodes = null;
+      if(dfsAdminUser) {
+        try {
+          DatanodeInfo[] liveNodeInfos = dfs.getClient().datanodeReport(DatanodeReportType.LIVE);
+          if(liveNodeInfos != null) {
+            liveNodes = new String[liveNodeInfos.length];
+            for(int i = 0; i < liveNodeInfos.length; i++) {
+              liveNodes[i] = liveNodeInfos[i].getHostName();
+            }
+          }
+          DatanodeInfo[] deadNodeInfos = dfs.getClient().datanodeReport(DatanodeReportType.DEAD);
+          if(deadNodeInfos != null) {
+            deadNodes = new String[deadNodeInfos.length];
+            for(int i = 0; i < deadNodeInfos.length; i++) {
+              deadNodes[i] = deadNodeInfos[i].getHostName();
+            }
+          }
+        } catch (Exception e) {
+          LOG.warn(e.getMessage() + ", use cloumon property ");
+          dfsAdminUser = false;
+        }
+      }
+      
+      if(!dfsAdminUser) {
+        String dataNodeFileName = conf.get("fs.datanode.file");
+        if(dataNodeFileName != null && dataNodeFileName.trim().length() > 0) {
+          liveNodes = loadDataNodeFromFile(dataNodeFileName);
+        }
+      }
+      
 //      LOG.info("nameNodeHost>>>" + nameNodeHost);
       synchronized(liveDataNodes) {
         addNameNodeItem(nameNodeHost);
@@ -259,32 +290,42 @@ public class HadoopMonitorItemLoader {
         if(deadNodes != null) {
           CollectionUtils.addAll(deadDataNodes, deadNodes);
         }
-        for(DatanodeInfo eachDatanodeInfo: liveDataNodes) {
-          String hostName = ipToHostname(eachDatanodeInfo.getHost());
+        for(String eachDatanode: liveDataNodes) {
+          String hostName = ipToHostname(eachDatanode);
 //          LOG.info("Live DataNode>>>" + hostName + ">" + dataNodeMonitorItemIds.size());
-          eachDatanodeInfo.setHostName(hostName);
           addDataNodeItem(hostName);
         }
-        for(DatanodeInfo eachDatanodeInfo: deadDataNodes) {
-          String hostName = ipToHostname(eachDatanodeInfo.getHost());
-//          LOG.info("Dead DataNode>>>" + hostName);
-          eachDatanodeInfo.setHostName(hostName);
+        for(String eachDatanode: deadDataNodes) {
+          String hostName = ipToHostname(eachDatanode);
           removeDataNodeItem(hostName);
         }
       }
     }
     
-    private String ipToHostname(String ipAddress) {
-      InetAddress inetAddress = null;
+    private String[] loadDataNodeFromFile(String dataNodeFileName) {
+      BufferedReader reader = null;
       try {
-        inetAddress = InetAddress.getByName(ipAddress);
-        return inetAddress.getHostName();
-      } catch (UnknownHostException e) {
-        LOG.warn("Unknown Host:" + ipAddress);
-        return ipAddress;
+        reader = new BufferedReader(new FileReader(new File(dataNodeFileName)));
+        String line = null;
+        List<String> dataNodes = new ArrayList<String>();
+        while( (line = reader.readLine()) != null) {
+          if(line.trim().length() > 1) {
+            dataNodes.add(line.trim());
+          }
+        }
+        return dataNodes.toArray(new String[]{});
+      } catch (Exception e) {
+        return null;
+      } finally {
+        if(reader != null) {
+          try {
+            reader.close();
+          } catch (IOException e) {
+          }
+        }
       }
     }
-    
+
     protected void addNameNodeItem(String hostName) throws IOException {
       List<MonitorItem> oldNameNodeMonitorItems = monitorManagerServer.monitorService.findHostMonitorItemsByGroup(hostName, "nameNode");
       if(oldNameNodeMonitorItems == null || oldNameNodeMonitorItems.isEmpty()) {
@@ -316,19 +357,14 @@ public class HadoopMonitorItemLoader {
     }
   }
   
-  public static void main(String[] args) throws Exception {
-    String ipAddress = "10.250.40.89";
+  private String ipToHostname(String ipAddress) {
     InetAddress inetAddress = null;
-
     try {
-        inetAddress = InetAddress.getByName(ipAddress);
+      inetAddress = InetAddress.getByName(ipAddress);
+      return inetAddress.getCanonicalHostName();
     } catch (UnknownHostException e) {
-        e.printStackTrace();
+      LOG.warn("Unknown Host:" + ipAddress);
+      return ipAddress;
     }
-    System.out.println("InetAddress object has this: " + ipAddress.toString());
-
-    System.out.println("Host name :" + inetAddress.getHostName());
-
-    System.out.println("canonical host name: " + inetAddress.getCanonicalHostName());
   }
 }

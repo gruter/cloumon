@@ -1,5 +1,6 @@
 package org.cloumon.manager.alarm;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -8,7 +9,6 @@ import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.zookeeper.ZooKeeper;
 import org.cloumon.manager.MonitorServiceImpl;
 import org.cloumon.manager.model.Alarm;
 import org.cloumon.manager.model.AlarmCondition;
@@ -85,7 +85,7 @@ public class AlarmManager implements Runnable {
         metricViewRecords.clear();
       } catch (Exception e) {
         LOG.error(e.getMessage(), e);
-        System.exit(0);
+        //System.exit(0);
       }
     }
   }
@@ -102,48 +102,53 @@ public class AlarmManager implements Runnable {
     String checkKey = alarm.getHostName() + alarm.getItemId();
     
     for(MetricViewRecord record: records) {
-      if(record.getItemId().equals(alarm.getItemId())) {
-        long lastCheckTime = 0;
-        if(lastMetricTimes.containsKey(checkKey)) {
-          lastCheckTime = lastMetricTimes.get(checkKey);
-        } else {
-          lastCheckTime = System.currentTimeMillis() - (120 * 1000);  //2min
-        }
-        lastMetricTimes.put(checkKey, record.getTimestamp());
-        
-        if(record.getTimestamp() <= lastCheckTime) {
-          continue;
-        }
-        
-        //value evaluation
-        if(expressionContext == null) {
-          continue;
-        }
-        
-        String alarmExpr =  alarmCondition.getExpression().replace("$value", new String(record.getMonitorData()));
-        Object exprResult = ExpressionEngine.evaluate(alarmExpr, expressionContext);
-        if(exprResult instanceof Boolean) {
-          if((Boolean)exprResult) {
-            int occurTimes = alarmCondition.getOccurTimes();
-            boolean alarmNoti = true;
-            if(occurTimes > 0) {
-              if(alarmOccurs.containsKey(checkKey) && alarmOccurs.get(checkKey) >= occurTimes) {
-                alarmOccurs.remove(checkKey);
-              } else {
-                alarmOccurs.put(checkKey, alarmOccurs.containsKey(checkKey) ? alarmOccurs.get(checkKey) + 1 : 1);
-                alarmNoti = false;
+      try {
+        if(record.getItemId().equals(alarm.getItemId())) {
+          long lastCheckTime = 0;
+          if(lastMetricTimes.containsKey(checkKey)) {
+            lastCheckTime = lastMetricTimes.get(checkKey);
+          } else {
+            lastCheckTime = System.currentTimeMillis() - (120 * 1000);  //2min
+          }
+          lastMetricTimes.put(checkKey, record.getTimestamp());
+          
+          if(record.getTimestamp() <= lastCheckTime) {
+            continue;
+          }
+          
+          //value evaluation
+          if(expressionContext == null) {
+            continue;
+          }
+          
+          String alarmExpr =  alarmCondition.getExpression().replace("$value", 
+              (new BigDecimal(new String(record.getMonitorData())).toPlainString()));
+          Object exprResult = ExpressionEngine.evaluate(alarmExpr, expressionContext);
+          if(exprResult instanceof Boolean) {
+            if((Boolean)exprResult) {
+              int occurTimes = alarmCondition.getOccurTimes();
+              boolean alarmNoti = true;
+              if(occurTimes > 0) {
+                if(alarmOccurs.containsKey(checkKey) && alarmOccurs.get(checkKey) >= occurTimes) {
+                  alarmOccurs.remove(checkKey);
+                } else {
+                  alarmOccurs.put(checkKey, alarmOccurs.containsKey(checkKey) ? alarmOccurs.get(checkKey) + 1 : 1);
+                  alarmNoti = false;
+                }
               }
-            }
-            
-            if(alarmNoti) {
-              HostInfo hostInfo = monitorService.getHostInfo(alarm.getHostName());
-              MonitorItem monitorItem = monitorService.getMonitorItem(alarm.getItemId());
-              for(AlarmSender eachSender: alarmSenders) {
-                eachSender.sendAlarm(conf, alarm, hostInfo, monitorItem, alarmExpr, record.getMonitorData());
+              
+              if(alarmNoti) {
+                HostInfo hostInfo = monitorService.getHostInfo(alarm.getHostName());
+                MonitorItem monitorItem = monitorService.getMonitorItem(alarm.getItemId());
+                for(AlarmSender eachSender: alarmSenders) {
+                  eachSender.sendAlarm(conf, alarm, hostInfo, monitorItem, alarmExpr, record.getMonitorData());
+                }
               }
             }
           }
         }
+      } catch (Exception e) {
+        LOG.error(record.getHostName() + ":" + record.getItemName() + ":" + record.getResourceName() + ":" + e.getMessage(), e);
       }
     }
   }
@@ -183,5 +188,14 @@ public class AlarmManager implements Runnable {
   }
   public static String getAlaramDBStr(String alarmExpr, String occurTimes, String alarmTo) {
     return ALARM_VERSION + ":" + occurTimes + ":" + alarmTo + ":" + alarmExpr;
+  }
+  
+  public static void main(String[] args) throws Exception {
+    System.out.println((new BigDecimal("2164895730940")).toPlainString());
+    ExpressionContext expressionContext = new ExpressionContext();
+    String alarmExpr =  "$value < 0".replace("$value", (new BigDecimal("2164895730940")).toPlainString());
+    Object exprResult = ExpressionEngine.evaluate(alarmExpr, expressionContext);
+    
+    System.out.println(">>>>" + exprResult);
   }
 }

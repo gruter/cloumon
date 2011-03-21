@@ -45,20 +45,30 @@ public class AgentFailMonitor {
     this.conf = conf;
     this.zk = zk;
     this.monitorService = monitorService;
-    this.servicePath = ZKUtil.getServicePath(conf, ZKPath.ZK_AGENT_SERVICE_NAME);
+    this.servicePath = ZKUtil.getServiceLiveServerPath(conf, ZKPath.ZK_AGENT_SERVICE_NAME);
     this.agentMonitorWatcher = new AgentMonitorWatcher();
     this.alarmSenders = AlarmManager.getSenders(conf);
   }
   
   public void startMonitor() throws Exception {
     synchronized(lock) {
+      List<String> agentHostIps = null;
       try {
-        previousAgents = zk.getChildren(servicePath, agentMonitorWatcher);
+        agentHostIps = zk.getChildren(servicePath, agentMonitorWatcher);
       } catch (KeeperException.NoNodeException e) {
         ZKUtil.createNode(zk, servicePath, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT, true);
       }
       if(previousAgents == null) {
         previousAgents = new ArrayList<String>();
+      }
+      
+      if(agentHostIps != null) {
+        for(String hostIp: agentHostIps) {
+          byte[] data = zk.getData(servicePath + "/" + hostIp, false, new Stat());
+          if(data != null) {
+            previousAgents.add(new String(data));
+          }
+        }
       }
       List<HostInfo> hostInfos = monitorService.findAllHosts();
       Set<String> zkHosts = new HashSet<String>();
@@ -72,6 +82,8 @@ public class AgentFailMonitor {
           for(AlarmSender eachSender: alarmSenders) {
             eachSender.sendAgentFailAlarm(conf, eachHostInfo);
           }
+        } else {
+          monitorService.updateAgentLiveStatus(eachHostInfo.getHostName(), true);
         }
       }
     }

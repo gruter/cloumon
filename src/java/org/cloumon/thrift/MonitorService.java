@@ -82,7 +82,7 @@ public class MonitorService {
 
     public void addHostToService(String serviceGroupName, List<String> hostNames) throws org.apache.thrift.TException;
 
-    public List<org.cloumon.thrift.DataNodeStatus> getDataNodeList() throws org.apache.thrift.TException;
+    public List<org.cloumon.thrift.HadoopServerStatus> getHadoopServerList(String type) throws org.apache.thrift.TException;
 
   }
 
@@ -146,7 +146,7 @@ public class MonitorService {
 
     public void addHostToService(String serviceGroupName, List<String> hostNames, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.addHostToService_call> resultHandler) throws org.apache.thrift.TException;
 
-    public void getDataNodeList(org.apache.thrift.async.AsyncMethodCallback<AsyncClient.getDataNodeList_call> resultHandler) throws org.apache.thrift.TException;
+    public void getHadoopServerList(String type, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.getHadoopServerList_call> resultHandler) throws org.apache.thrift.TException;
 
   }
 
@@ -811,26 +811,27 @@ public class MonitorService {
       return;
     }
 
-    public List<org.cloumon.thrift.DataNodeStatus> getDataNodeList() throws org.apache.thrift.TException
+    public List<org.cloumon.thrift.HadoopServerStatus> getHadoopServerList(String type) throws org.apache.thrift.TException
     {
-      send_getDataNodeList();
-      return recv_getDataNodeList();
+      send_getHadoopServerList(type);
+      return recv_getHadoopServerList();
     }
 
-    public void send_getDataNodeList() throws org.apache.thrift.TException
+    public void send_getHadoopServerList(String type) throws org.apache.thrift.TException
     {
-      getDataNodeList_args args = new getDataNodeList_args();
-      sendBase("getDataNodeList", args);
+      getHadoopServerList_args args = new getHadoopServerList_args();
+      args.setType(type);
+      sendBase("getHadoopServerList", args);
     }
 
-    public List<org.cloumon.thrift.DataNodeStatus> recv_getDataNodeList() throws org.apache.thrift.TException
+    public List<org.cloumon.thrift.HadoopServerStatus> recv_getHadoopServerList() throws org.apache.thrift.TException
     {
-      getDataNodeList_result result = new getDataNodeList_result();
-      receiveBase(result, "getDataNodeList");
+      getHadoopServerList_result result = new getHadoopServerList_result();
+      receiveBase(result, "getHadoopServerList");
       if (result.isSetSuccess()) {
         return result.success;
       }
-      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "getDataNodeList failed: unknown result");
+      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "getHadoopServerList failed: unknown result");
     }
 
   }
@@ -1827,32 +1828,35 @@ public class MonitorService {
       }
     }
 
-    public void getDataNodeList(org.apache.thrift.async.AsyncMethodCallback<getDataNodeList_call> resultHandler) throws org.apache.thrift.TException {
+    public void getHadoopServerList(String type, org.apache.thrift.async.AsyncMethodCallback<getHadoopServerList_call> resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      getDataNodeList_call method_call = new getDataNodeList_call(resultHandler, this, protocolFactory, transport);
+      getHadoopServerList_call method_call = new getHadoopServerList_call(type, resultHandler, this, protocolFactory, transport);
       this.currentMethod = method_call;
       manager.call(method_call);
     }
 
-    public static class getDataNodeList_call extends org.apache.thrift.async.TAsyncMethodCall {
-      public getDataNodeList_call(org.apache.thrift.async.AsyncMethodCallback<getDataNodeList_call> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+    public static class getHadoopServerList_call extends org.apache.thrift.async.TAsyncMethodCall {
+      private String type;
+      public getHadoopServerList_call(String type, org.apache.thrift.async.AsyncMethodCallback<getHadoopServerList_call> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
+        this.type = type;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
-        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("getDataNodeList", org.apache.thrift.protocol.TMessageType.CALL, 0));
-        getDataNodeList_args args = new getDataNodeList_args();
+        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("getHadoopServerList", org.apache.thrift.protocol.TMessageType.CALL, 0));
+        getHadoopServerList_args args = new getHadoopServerList_args();
+        args.setType(type);
         args.write(prot);
         prot.writeMessageEnd();
       }
 
-      public List<org.cloumon.thrift.DataNodeStatus> getResult() throws org.apache.thrift.TException {
+      public List<org.cloumon.thrift.HadoopServerStatus> getResult() throws org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
         org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
-        return (new Client(prot)).recv_getDataNodeList();
+        return (new Client(prot)).recv_getHadoopServerList();
       }
     }
 
@@ -1898,7 +1902,7 @@ public class MonitorService {
       processMap.put("removeServiceGroup", new removeServiceGroup());
       processMap.put("removeHostsFromServiceGroup", new removeHostsFromServiceGroup());
       processMap.put("addHostToService", new addHostToService());
-      processMap.put("getDataNodeList", new getDataNodeList());
+      processMap.put("getHadoopServerList", new getHadoopServerList());
       return processMap;
     }
 
@@ -2366,18 +2370,18 @@ public class MonitorService {
       }
     }
 
-    private static class getDataNodeList<I extends Iface> extends org.apache.thrift.ProcessFunction<I, getDataNodeList_args> {
-      public getDataNodeList() {
-        super("getDataNodeList");
+    private static class getHadoopServerList<I extends Iface> extends org.apache.thrift.ProcessFunction<I, getHadoopServerList_args> {
+      public getHadoopServerList() {
+        super("getHadoopServerList");
       }
 
-      protected getDataNodeList_args getEmptyArgsInstance() {
-        return new getDataNodeList_args();
+      protected getHadoopServerList_args getEmptyArgsInstance() {
+        return new getHadoopServerList_args();
       }
 
-      protected getDataNodeList_result getResult(I iface, getDataNodeList_args args) throws org.apache.thrift.TException {
-        getDataNodeList_result result = new getDataNodeList_result();
-        result.success = iface.getDataNodeList();
+      protected getHadoopServerList_result getResult(I iface, getHadoopServerList_args args) throws org.apache.thrift.TException {
+        getHadoopServerList_result result = new getHadoopServerList_result();
+        result.success = iface.getHadoopServerList(args.type);
         return result;
       }
     }
@@ -20408,14 +20412,16 @@ public class MonitorService {
 
   }
 
-  public static class getDataNodeList_args implements org.apache.thrift.TBase<getDataNodeList_args, getDataNodeList_args._Fields>, java.io.Serializable, Cloneable   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getDataNodeList_args");
+  public static class getHadoopServerList_args implements org.apache.thrift.TBase<getHadoopServerList_args, getHadoopServerList_args._Fields>, java.io.Serializable, Cloneable   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getHadoopServerList_args");
 
+    private static final org.apache.thrift.protocol.TField TYPE_FIELD_DESC = new org.apache.thrift.protocol.TField("type", org.apache.thrift.protocol.TType.STRING, (short)1);
 
+    public String type;
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-;
+      TYPE((short)1, "type");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -20430,6 +20436,8 @@ public class MonitorService {
        */
       public static _Fields findByThriftId(int fieldId) {
         switch(fieldId) {
+          case 1: // TYPE
+            return TYPE;
           default:
             return null;
         }
@@ -20468,37 +20476,88 @@ public class MonitorService {
         return _fieldName;
       }
     }
+
+    // isset id assignments
+
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      tmpMap.put(_Fields.TYPE, new org.apache.thrift.meta_data.FieldMetaData("type", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getDataNodeList_args.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getHadoopServerList_args.class, metaDataMap);
     }
 
-    public getDataNodeList_args() {
+    public getHadoopServerList_args() {
+    }
+
+    public getHadoopServerList_args(
+      String type)
+    {
+      this();
+      this.type = type;
     }
 
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public getDataNodeList_args(getDataNodeList_args other) {
+    public getHadoopServerList_args(getHadoopServerList_args other) {
+      if (other.isSetType()) {
+        this.type = other.type;
+      }
     }
 
-    public getDataNodeList_args deepCopy() {
-      return new getDataNodeList_args(this);
+    public getHadoopServerList_args deepCopy() {
+      return new getHadoopServerList_args(this);
     }
 
     @Override
     public void clear() {
+      this.type = null;
+    }
+
+    public String getType() {
+      return this.type;
+    }
+
+    public getHadoopServerList_args setType(String type) {
+      this.type = type;
+      return this;
+    }
+
+    public void unsetType() {
+      this.type = null;
+    }
+
+    /** Returns true if field type is set (has been assigned a value) and false otherwise */
+    public boolean isSetType() {
+      return this.type != null;
+    }
+
+    public void setTypeIsSet(boolean value) {
+      if (!value) {
+        this.type = null;
+      }
     }
 
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
+      case TYPE:
+        if (value == null) {
+          unsetType();
+        } else {
+          setType((String)value);
+        }
+        break;
+
       }
     }
 
     public Object getFieldValue(_Fields field) {
       switch (field) {
+      case TYPE:
+        return getType();
+
       }
       throw new IllegalStateException();
     }
@@ -20510,6 +20569,8 @@ public class MonitorService {
       }
 
       switch (field) {
+      case TYPE:
+        return isSetType();
       }
       throw new IllegalStateException();
     }
@@ -20518,14 +20579,23 @@ public class MonitorService {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof getDataNodeList_args)
-        return this.equals((getDataNodeList_args)that);
+      if (that instanceof getHadoopServerList_args)
+        return this.equals((getHadoopServerList_args)that);
       return false;
     }
 
-    public boolean equals(getDataNodeList_args that) {
+    public boolean equals(getHadoopServerList_args that) {
       if (that == null)
         return false;
+
+      boolean this_present_type = true && this.isSetType();
+      boolean that_present_type = true && that.isSetType();
+      if (this_present_type || that_present_type) {
+        if (!(this_present_type && that_present_type))
+          return false;
+        if (!this.type.equals(that.type))
+          return false;
+      }
 
       return true;
     }
@@ -20535,14 +20605,24 @@ public class MonitorService {
       return 0;
     }
 
-    public int compareTo(getDataNodeList_args other) {
+    public int compareTo(getHadoopServerList_args other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
 
       int lastComparison = 0;
-      getDataNodeList_args typedOther = (getDataNodeList_args)other;
+      getHadoopServerList_args typedOther = (getHadoopServerList_args)other;
 
+      lastComparison = Boolean.valueOf(isSetType()).compareTo(typedOther.isSetType());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetType()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.type, typedOther.type);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
       return 0;
     }
 
@@ -20560,6 +20640,13 @@ public class MonitorService {
           break;
         }
         switch (field.id) {
+          case 1: // TYPE
+            if (field.type == org.apache.thrift.protocol.TType.STRING) {
+              this.type = iprot.readString();
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, field.type);
+            }
+            break;
           default:
             org.apache.thrift.protocol.TProtocolUtil.skip(iprot, field.type);
         }
@@ -20575,15 +20662,27 @@ public class MonitorService {
       validate();
 
       oprot.writeStructBegin(STRUCT_DESC);
+      if (this.type != null) {
+        oprot.writeFieldBegin(TYPE_FIELD_DESC);
+        oprot.writeString(this.type);
+        oprot.writeFieldEnd();
+      }
       oprot.writeFieldStop();
       oprot.writeStructEnd();
     }
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("getDataNodeList_args(");
+      StringBuilder sb = new StringBuilder("getHadoopServerList_args(");
       boolean first = true;
 
+      sb.append("type:");
+      if (this.type == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.type);
+      }
+      first = false;
       sb.append(")");
       return sb.toString();
     }
@@ -20610,12 +20709,12 @@ public class MonitorService {
 
   }
 
-  public static class getDataNodeList_result implements org.apache.thrift.TBase<getDataNodeList_result, getDataNodeList_result._Fields>, java.io.Serializable, Cloneable   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getDataNodeList_result");
+  public static class getHadoopServerList_result implements org.apache.thrift.TBase<getHadoopServerList_result, getHadoopServerList_result._Fields>, java.io.Serializable, Cloneable   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getHadoopServerList_result");
 
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.LIST, (short)0);
 
-    public List<org.cloumon.thrift.DataNodeStatus> success;
+    public List<org.cloumon.thrift.HadoopServerStatus> success;
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -20682,16 +20781,16 @@ public class MonitorService {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
-              new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, org.cloumon.thrift.DataNodeStatus.class))));
+              new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, org.cloumon.thrift.HadoopServerStatus.class))));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getDataNodeList_result.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getHadoopServerList_result.class, metaDataMap);
     }
 
-    public getDataNodeList_result() {
+    public getHadoopServerList_result() {
     }
 
-    public getDataNodeList_result(
-      List<org.cloumon.thrift.DataNodeStatus> success)
+    public getHadoopServerList_result(
+      List<org.cloumon.thrift.HadoopServerStatus> success)
     {
       this();
       this.success = success;
@@ -20700,18 +20799,18 @@ public class MonitorService {
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public getDataNodeList_result(getDataNodeList_result other) {
+    public getHadoopServerList_result(getHadoopServerList_result other) {
       if (other.isSetSuccess()) {
-        List<org.cloumon.thrift.DataNodeStatus> __this__success = new ArrayList<org.cloumon.thrift.DataNodeStatus>();
-        for (org.cloumon.thrift.DataNodeStatus other_element : other.success) {
-          __this__success.add(new org.cloumon.thrift.DataNodeStatus(other_element));
+        List<org.cloumon.thrift.HadoopServerStatus> __this__success = new ArrayList<org.cloumon.thrift.HadoopServerStatus>();
+        for (org.cloumon.thrift.HadoopServerStatus other_element : other.success) {
+          __this__success.add(new org.cloumon.thrift.HadoopServerStatus(other_element));
         }
         this.success = __this__success;
       }
     }
 
-    public getDataNodeList_result deepCopy() {
-      return new getDataNodeList_result(this);
+    public getHadoopServerList_result deepCopy() {
+      return new getHadoopServerList_result(this);
     }
 
     @Override
@@ -20723,22 +20822,22 @@ public class MonitorService {
       return (this.success == null) ? 0 : this.success.size();
     }
 
-    public java.util.Iterator<org.cloumon.thrift.DataNodeStatus> getSuccessIterator() {
+    public java.util.Iterator<org.cloumon.thrift.HadoopServerStatus> getSuccessIterator() {
       return (this.success == null) ? null : this.success.iterator();
     }
 
-    public void addToSuccess(org.cloumon.thrift.DataNodeStatus elem) {
+    public void addToSuccess(org.cloumon.thrift.HadoopServerStatus elem) {
       if (this.success == null) {
-        this.success = new ArrayList<org.cloumon.thrift.DataNodeStatus>();
+        this.success = new ArrayList<org.cloumon.thrift.HadoopServerStatus>();
       }
       this.success.add(elem);
     }
 
-    public List<org.cloumon.thrift.DataNodeStatus> getSuccess() {
+    public List<org.cloumon.thrift.HadoopServerStatus> getSuccess() {
       return this.success;
     }
 
-    public getDataNodeList_result setSuccess(List<org.cloumon.thrift.DataNodeStatus> success) {
+    public getHadoopServerList_result setSuccess(List<org.cloumon.thrift.HadoopServerStatus> success) {
       this.success = success;
       return this;
     }
@@ -20764,7 +20863,7 @@ public class MonitorService {
         if (value == null) {
           unsetSuccess();
         } else {
-          setSuccess((List<org.cloumon.thrift.DataNodeStatus>)value);
+          setSuccess((List<org.cloumon.thrift.HadoopServerStatus>)value);
         }
         break;
 
@@ -20797,12 +20896,12 @@ public class MonitorService {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof getDataNodeList_result)
-        return this.equals((getDataNodeList_result)that);
+      if (that instanceof getHadoopServerList_result)
+        return this.equals((getHadoopServerList_result)that);
       return false;
     }
 
-    public boolean equals(getDataNodeList_result that) {
+    public boolean equals(getHadoopServerList_result that) {
       if (that == null)
         return false;
 
@@ -20823,13 +20922,13 @@ public class MonitorService {
       return 0;
     }
 
-    public int compareTo(getDataNodeList_result other) {
+    public int compareTo(getHadoopServerList_result other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
 
       int lastComparison = 0;
-      getDataNodeList_result typedOther = (getDataNodeList_result)other;
+      getHadoopServerList_result typedOther = (getHadoopServerList_result)other;
 
       lastComparison = Boolean.valueOf(isSetSuccess()).compareTo(typedOther.isSetSuccess());
       if (lastComparison != 0) {
@@ -20862,11 +20961,11 @@ public class MonitorService {
             if (field.type == org.apache.thrift.protocol.TType.LIST) {
               {
                 org.apache.thrift.protocol.TList _list80 = iprot.readListBegin();
-                this.success = new ArrayList<org.cloumon.thrift.DataNodeStatus>(_list80.size);
+                this.success = new ArrayList<org.cloumon.thrift.HadoopServerStatus>(_list80.size);
                 for (int _i81 = 0; _i81 < _list80.size; ++_i81)
                 {
-                  org.cloumon.thrift.DataNodeStatus _elem82;
-                  _elem82 = new org.cloumon.thrift.DataNodeStatus();
+                  org.cloumon.thrift.HadoopServerStatus _elem82;
+                  _elem82 = new org.cloumon.thrift.HadoopServerStatus();
                   _elem82.read(iprot);
                   this.success.add(_elem82);
                 }
@@ -20894,7 +20993,7 @@ public class MonitorService {
         oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
         {
           oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, this.success.size()));
-          for (org.cloumon.thrift.DataNodeStatus _iter83 : this.success)
+          for (org.cloumon.thrift.HadoopServerStatus _iter83 : this.success)
           {
             _iter83.write(oprot);
           }
@@ -20908,7 +21007,7 @@ public class MonitorService {
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("getDataNodeList_result(");
+      StringBuilder sb = new StringBuilder("getHadoopServerList_result(");
       boolean first = true;
 
       sb.append("success:");

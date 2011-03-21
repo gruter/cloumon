@@ -31,7 +31,8 @@ uki.view.declare('monitor_app.view.HdfsMetricsBox', uki.view.Box, function(Base)
                                   childViews: [
                                     { view: 'Table', rect: '0 0 250 700', anchors: 'left top right bottom', id: 'dataNodeHostsTable', multiselect: false, style: {fontSize: '12px', lineHeight: '12px'},
                                       columns: [
-                                        { view: 'table.Column', label: 'DataNode', key: 'hostName', width: 200, resizable: true},
+                                        { view: 'table.Column', label: 'Host', key: 'hostName', width: 150, resizable: true},
+                                        { view: 'table.Column', label: 'Type', key: 'nodeType', width: 50, resizable: true},
                                         { view: 'table.Column', label: 'Status', key: 'live', width: 50, resizable: true}
                                       ]
                                     }                                    
@@ -76,13 +77,14 @@ uki.view.declare('monitor_app.view.HdfsMetricsBox', uki.view.Box, function(Base)
       }
             
       //fill current metric table
-      dataLoader.getHostCurrentMetrics(row.hostName, 'datanode', function(data) {
+      dataLoader.getHostCurrentMetrics(row.hostName, row.nodeType, function(data) {
         uki('#dataNodeMetricsTable', mainBox).data(eval(data)).layout();
       });
     }); 
     
     uki('#dataNodeMetricsTable List', mainBox).bind('click', function() {
       var selectedHostName = uki('#dataNodeHostsTable').selectedRows()[0].hostName;
+      var selectedType = uki('#dataNodeHostsTable').selectedRows()[0].nodeType;
       var indexes = this.selectedIndexes();
       if(indexes.length != 1) {
         return;
@@ -91,15 +93,15 @@ uki.view.declare('monitor_app.view.HdfsMetricsBox', uki.view.Box, function(Base)
       if (!row) return;
       
       //chart
-      dataLoader.getHostHistoryMetrics(selectedHostName, 'datanode', row.itemName, '', '', function(data) {
+      dataLoader.getHostHistoryMetrics(selectedHostName, selectedType, row.itemName, '', '', function(data) {
           var jsonData = eval(data); 
           window.frames['dataNodeChartFrame'].showGraph(jsonData);
       });
     });     
     
 		uki('#nameNodeRefreshButton', mainBox).bind('click', function() {
-      loadNameNode();
       loadDataNode();
+      loadNameNode();
     });
     
     loadNameNode = function() {

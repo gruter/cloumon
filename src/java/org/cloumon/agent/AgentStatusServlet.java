@@ -112,7 +112,7 @@ public class AgentStatusServlet extends HttpServlet {
 
     StringBuilder sb = new StringBuilder();
     for(MonitorItem eachItem: items) {
-      sb.append(eachItem.toString());
+      sb.append(eachItem.toString()).append("<br/>");
     }
     
     return sb.toString();

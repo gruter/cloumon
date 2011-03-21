@@ -165,6 +165,13 @@ public class Agent extends ThriftApplicationServer implements AgentService.Iface
         return;
       } catch (Exception e) {
         LOG.error(e.getMessage(), e);
+        if(managerConnection != null) {
+          try {
+            managerPool.closeConnection(managerConnection);
+          } catch (Exception e1) {
+          }
+        }
+        managerConnection = null;
         try {
           Thread.sleep(10 * 1000);
         } catch (InterruptedException e1) {
@@ -218,15 +225,6 @@ public class Agent extends ThriftApplicationServer implements AgentService.Iface
         client.addMetricRecord(metricsRecords);
         
         return;
-      } catch (NoServerException e) {
-        if (connection != null) {
-          try {
-            collectorPool.closeConnection(connection);
-          } catch (Exception e1) {
-          }
-          connection = null;
-        }
-        return;
       } catch (Exception e) {
         if (connection != null) {
           try {
@@ -236,6 +234,10 @@ public class Agent extends ThriftApplicationServer implements AgentService.Iface
           connection = null;
         }
         exception = e;
+        try {
+          Thread.sleep(2 * 1000);
+        } catch (InterruptedException e1) {
+        }
       } finally {
         if (connection != null) {
           collectorPool.releaseConnection(connection);

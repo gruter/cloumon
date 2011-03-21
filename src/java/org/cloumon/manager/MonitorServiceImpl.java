@@ -20,7 +20,6 @@ import javax.annotation.Resource;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.hadoop.hdfs.protocol.DatanodeInfo;
 import org.apache.thrift.TException;
 import org.apache.zookeeper.KeeperException;
 import org.cloumon.agent.item.ItemManager;
@@ -31,8 +30,8 @@ import org.cloumon.manager.dao.MetricDAO;
 import org.cloumon.manager.dao.MonitorItemDAO;
 import org.cloumon.manager.dao.ServiceGroupDAO;
 import org.cloumon.manager.model.Alarm;
-import org.cloumon.manager.model.DataNodeStatusJson;
-import org.cloumon.thrift.DataNodeStatus;
+import org.cloumon.manager.model.HadoopServerStatusJson;
+import org.cloumon.thrift.HadoopServerStatus;
 import org.cloumon.thrift.HostHistoryMetrics;
 import org.cloumon.thrift.HostInfo;
 import org.cloumon.thrift.HostSummaryMetrics;
@@ -423,24 +422,36 @@ public class MonitorServiceImpl implements MonitorService.Iface {
   }
   
   @Override
-  public List<DataNodeStatus> getDataNodeList() throws TException {
-    List<DataNodeStatus> datanodes = new ArrayList<DataNodeStatus>();
-    List<DatanodeInfo> liveDataNodes = monitorManagerServer.hadoopMonitorItemLoader.getLiveDataNodes();
+  public List<HadoopServerStatus> getHadoopServerList(String type) throws TException {
+    List<HadoopServerStatus> datanodes = new ArrayList<HadoopServerStatus>();
+    String nameNode = monitorManagerServer.hadoopMonitorItemLoader.getNameNodeHost();
+    if(nameNode != null) {
+      HadoopServerStatus status = new HadoopServerStatusJson();
+      status.setHostName(monitorManagerServer.hadoopMonitorItemLoader.getNameNodeHost());
+      status.setNodeType("namenode");
+      status.setLive(true);
+      datanodes.add(status);
+    }
+    
+    
+    List<String> liveDataNodes = monitorManagerServer.hadoopMonitorItemLoader.getLiveDataNodes();
     if(liveDataNodes != null) {
-      for(DatanodeInfo eachNode: liveDataNodes) {
-        DataNodeStatus status = new DataNodeStatusJson();
-        status.setHostName(eachNode.getHostName());
+      for(String eachNode: liveDataNodes) {
+        HadoopServerStatus status = new HadoopServerStatusJson();
+        status.setHostName(eachNode);
         status.setLive(true);
+        status.setNodeType("datanode");
         datanodes.add(status);
       }
     }
     
-    List<DatanodeInfo> deadDataNodes = monitorManagerServer.hadoopMonitorItemLoader.getDeadDataNodes();
+    List<String> deadDataNodes = monitorManagerServer.hadoopMonitorItemLoader.getDeadDataNodes();
     if(deadDataNodes != null) {
-      for(DatanodeInfo eachNode: deadDataNodes) {
-        DataNodeStatus status = new DataNodeStatusJson();
-        status.setHostName(eachNode.getHostName());
+      for(String eachNode: deadDataNodes) {
+        HadoopServerStatus status = new HadoopServerStatusJson();
+        status.setHostName(eachNode);
         status.setLive(false);
+        status.setNodeType("datanode");
         datanodes.add(status);
       }
     }

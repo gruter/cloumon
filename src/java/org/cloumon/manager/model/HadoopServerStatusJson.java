@@ -1,9 +1,10 @@
 package org.cloumon.manager.model;
 
 import org.cloumon.manager.servlet.JsonUtil;
-import org.cloumon.thrift.DataNodeStatus;
+import org.cloumon.thrift.HadoopServerStatus;
 
-public class DataNodeStatusJson extends DataNodeStatus {
+@SuppressWarnings("serial")
+public class HadoopServerStatusJson extends HadoopServerStatus {
   public String toString() {
     StringBuilder sb = new StringBuilder("{");
     sb.append("\"hostName\":");
@@ -11,6 +12,13 @@ public class DataNodeStatusJson extends DataNodeStatus {
       sb.append("null");
     } else {
       sb.append(JsonUtil.getJsonValue(this.hostName));
+    }
+    sb.append(", ");
+    sb.append("\"nodeType\":");
+    if (this.nodeType == null) {
+      sb.append("null");
+    } else {
+      sb.append(JsonUtil.getJsonValue(this.nodeType));
     }
     sb.append(", ");
     sb.append("\"live\":");

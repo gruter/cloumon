@@ -103,6 +103,18 @@
   </property>
 
   <property>
+    <name>fs.default.name</name>
+    <value></value>
+    <description></description>
+  </property>
+  
+  <property>
+    <name>fs.datanode.file</name>
+    <value></value>
+    <description></description>
+  </property>  
+  
+  <property>
     <name>hadoop.jvm.metrics.path</name>
     <value></value>
     <description></description>
