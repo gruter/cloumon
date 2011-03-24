@@ -240,6 +240,9 @@ public class HadoopMonitorItemLoader {
     
     protected void checkDataNodeStatus() throws IOException {
       String fsName = conf.get("fs.default.name");
+      if(fsName == null || !fsName.startsWith("hdfs")) {
+        return;
+      }
       Configuration hadoopConf = new Configuration();
       hadoopConf.set("fs.default.name", fsName);
       

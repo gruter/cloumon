@@ -5,7 +5,7 @@
 export JAVA_HOME=/usr/java/jdk1.6.0_06
 
 #CLOUMON home dir
-export CLOUMONE_HOME=/home/cloumon/cloumon-1.0.0
+export CLOUMON_HOME=/home/cloumon/cloumon-1.0.0
 
 #CLOUMON conf dis
 export CLOUMON_CONF_DIR="${CLOUMON_HOME}/conf"

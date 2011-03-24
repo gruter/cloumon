@@ -20,8 +20,8 @@ SystemMonitorAdaptor disk.avail 60 disk avail
 SystemMonitorAdaptor disk.used 60 disk used
 SystemMonitorAdaptor disk.usePercent 60 disk usePercent
 
-#SystemMonitorAdaptor network.rxBytes 60 network rxBytes
-#SystemMonitorAdaptor network.txBytes 60 network txBytes
+SystemMonitorAdaptor network.rxBytes 60 network rxBytes
+SystemMonitorAdaptor network.txBytes 60 network txBytes
 
 ExecAdaptor process.java_count 60 ps aux | grep java | grep -v grep | wc -l
 
