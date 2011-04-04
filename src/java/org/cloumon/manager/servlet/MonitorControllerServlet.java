@@ -60,7 +60,7 @@ public class MonitorControllerServlet extends HttpServlet {
     try {
       if(action != null) {
         String actionResult = action.runAction(request, response);
-        LOG.info("actionResult: " + actionResult);
+        LOG.debug("actionResult: " + actionResult);
         out.write(actionResult);
       } else {
         out.write("ERROR:No avaliable action!!! Check action parameter");

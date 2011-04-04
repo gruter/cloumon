@@ -126,12 +126,12 @@ public class MetricDAOImpl extends MonitorJdbcDaoSupport implements MetricDAO {
     
     if(resourceName != null) {
       sql += "  AND resourceName = ? \n";
-      sql += "  AND date_format(CollectTime, '%Y-%m-%d %H:%i') BETWEEN ? AND ? \n";
+      sql += "  AND CollectTime BETWEEN ? AND ? \n";
       sql += "GROUP BY CollectTime ORDER BY CollectTime desc";
       System.out.println(sql + "," + hostName + "," + groupName + "," + resourceName + "," + startTime + "," + endTime);
       return getJdbcTemplate().query(sql, new HostHistoryMetricsRowMapper(itemNames), hostName, groupName, resourceName, startTime, endTime);
     } else {
-      sql += "  AND date_format(CollectTime, '%Y-%m-%d %H:%i') BETWEEN ? AND ? \n";
+      sql += "  AND CollectTime BETWEEN ? AND ? \n";
       sql += "GROUP BY CollectTime ORDER BY CollectTime desc";
       System.out.println(sql + "," + hostName + "," + groupName + "," + startTime + "," + endTime);
       return getJdbcTemplate().query(sql, new HostHistoryMetricsRowMapper(itemNames), hostName, groupName, startTime, endTime);

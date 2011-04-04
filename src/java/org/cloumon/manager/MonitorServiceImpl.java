@@ -677,6 +677,8 @@ public class MonitorServiceImpl implements MonitorService.Iface {
         hostName = monitorManagerServer.hadoopMonitorItemLoader.getNameNodeHost();
       }
       //String rearrangedEndTime = checkMetricHistoryTime(startTime, endTime);
+      startTime += ":00";
+      endTime += ":59";
       return metricDAO.findHistoryMetrics(getMetricTableName(endTime), hostName, realGroupName, resourceName, itemNames, startTime, endTime);
     } catch (IOException e) {
       LOG.error(e.getMessage(), e);
@@ -707,6 +709,8 @@ public class MonitorServiceImpl implements MonitorService.Iface {
       if(hostName.equals("namenode")) {
         hostName = monitorManagerServer.hadoopMonitorItemLoader.getNameNodeHost();
       }
+      startTime += ":00";
+      endTime += ":59";
       return metricDAO.findHistoryMetrics(getMetricTableName(endTime), hostName, realGroupName, resourceName, itemNames, startTime, endTime);
     } catch (IOException e) {
       LOG.error(e.getMessage(), e);
