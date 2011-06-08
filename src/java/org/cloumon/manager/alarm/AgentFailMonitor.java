@@ -1,8 +1,10 @@
 package org.cloumon.manager.alarm;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.logging.Log;
@@ -31,7 +33,11 @@ public class AgentFailMonitor {
   private ZooKeeper zk;
   private String servicePath;
   
+  private Map<String, String> ipToHostNames = new HashMap<String, String>();
+  
   private List<String> previousAgents;
+  
+  private List<String> previousAgentIps;
   
   private AgentMonitorWatcher agentMonitorWatcher;
   
@@ -51,10 +57,11 @@ public class AgentFailMonitor {
   }
   
   public void startMonitor() throws Exception {
+    LOG.info("Start Agent Fail Manager");
     synchronized(lock) {
-      List<String> agentHostIps = null;
+      //List<String> agentHostIps = null;
       try {
-        agentHostIps = zk.getChildren(servicePath, agentMonitorWatcher);
+        previousAgentIps = zk.getChildren(servicePath, agentMonitorWatcher);
       } catch (KeeperException.NoNodeException e) {
         ZKUtil.createNode(zk, servicePath, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT, true);
       }
@@ -62,21 +69,25 @@ public class AgentFailMonitor {
         previousAgents = new ArrayList<String>();
       }
       
-      if(agentHostIps != null) {
-        for(String hostIp: agentHostIps) {
+      if(previousAgentIps != null) {
+        for(String hostIp: previousAgentIps) {
           byte[] data = zk.getData(servicePath + "/" + hostIp, false, new Stat());
           if(data != null) {
-            previousAgents.add(new String(data));
+            String hostName = new String(data);
+            ipToHostNames.put(hostIp, hostName);
+            previousAgents.add(hostName);
           }
         }
       }
       List<HostInfo> hostInfos = monitorService.findAllHosts();
       Set<String> zkHosts = new HashSet<String>();
       for(String eachZkHost: previousAgents) {
+//        LOG.info("zkHost:" + StringUtils.getHostName(eachZkHost) + ">" + eachZkHost);
         zkHosts.add(StringUtils.getHostName(eachZkHost));
       }
       
       for(HostInfo eachHostInfo: hostInfos) {
+//        LOG.info("DB:" + eachHostInfo.getHostName());
         if(!zkHosts.contains(eachHostInfo.getHostName())) {
           monitorService.updateAgentLiveStatus(eachHostInfo.getHostName(), false);
           for(AlarmSender eachSender: alarmSenders) {
@@ -92,18 +103,26 @@ public class AgentFailMonitor {
   private void sendAlarm(List<String> removedAgents) {
     synchronized(lock) {
       for(String eachAgent: removedAgents) {
-        byte[] hostNamePortBytes = null;
-        try {
-          hostNamePortBytes = zk.getData(servicePath + "/" + eachAgent, false, new Stat());
-        } catch (Exception e) {
-          LOG.error("error get host data in zk node:" + servicePath + "/" + eachAgent + ":" + e.getMessage(), e);
+//        byte[] hostNamePortBytes = null;
+//        try {
+//          hostNamePortBytes = zk.getData(servicePath + "/" + eachAgent, false, new Stat());
+//        } catch (Exception e) {
+//          LOG.error("error get host data in zk node:" + servicePath + "/" + eachAgent + ":" + e.getMessage(), e);
+//          continue;
+//        }
+//        if(hostNamePortBytes == null) {
+//          LOG.error("No host data in zk node:" + servicePath + "/" + eachAgent);
+//          continue;
+//        }
+//        String hostName = StringUtils.getHostName(new String(hostNamePortBytes));
+        String hostName = ipToHostNames.get(eachAgent);
+        if(hostName == null) {
+          LOG.warn("No hostname info for agent:" + eachAgent);
           continue;
         }
-        if(hostNamePortBytes == null) {
-          LOG.error("No host data in zk node:" + servicePath + "/" + eachAgent);
-          continue;
+        if(hostName.indexOf(":") > 0) {
+          hostName = StringUtils.getHostName(new String(hostName));
         }
-        String hostName = StringUtils.getHostName(new String(hostNamePortBytes));
         HostInfo hostInfo = null;
         try {
           hostInfo = monitorService.getHostInfo(hostName);
@@ -114,6 +133,11 @@ public class AgentFailMonitor {
         if(hostInfo == null) {
           LOG.warn("No hostInfo:" + hostName + " while sending failed agent notification");
           continue;
+        }
+        try {
+          monitorService.updateAgentLiveStatus(hostInfo.getHostName(), false);
+        } catch (TException e) {
+          LOG.error(hostInfo.getHostName() + ":" + e.getMessage(), e);
         }
         for(AlarmSender eachSender: alarmSenders) {
           eachSender.sendAgentFailAlarm(conf, hostInfo);
@@ -127,11 +151,23 @@ public class AgentFailMonitor {
     public void process(WatchedEvent event) {
       if(event.getType() == Event.EventType.NodeChildrenChanged) {
         try {
-          List<String> currentAgents = zk.getChildren(servicePath, agentMonitorWatcher);
+          List<String> currentAgentIps = zk.getChildren(servicePath, agentMonitorWatcher);
           List<String> added = new ArrayList<String>();
           List<String> removed = new ArrayList<String>();
-          ZKUtil.compareCollection(previousAgents, currentAgents, added, removed);
-          previousAgents = currentAgents;
+          
+          LOG.info("Previous Hosts:" + previousAgentIps.size() + ", Current Hosts:" + currentAgentIps.size());
+          ZKUtil.compareCollection(previousAgentIps, currentAgentIps, added, removed);
+          previousAgentIps = currentAgentIps;
+          if(previousAgentIps != null) {
+            for(String hostIp: previousAgentIps) {
+              byte[] data = zk.getData(servicePath + "/" + hostIp, false, new Stat());
+              if(data != null) {
+                String hostName = new String(data);
+                ipToHostNames.put(hostIp, hostName);
+                previousAgents.add(hostName);
+              }
+            }
+          }
           sendAlarm(removed);
         } catch (Exception e) {
           LOG.error(e.getMessage(), e);
